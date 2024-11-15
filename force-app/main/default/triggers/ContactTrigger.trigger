@@ -4,9 +4,12 @@
  * The ContactTrigger is designed to handle various logic upon the insertion and update of Contact records in Salesforce. 
  * 
  * Key Behaviors:
- * 1. When a new Contact is inserted and doesn't have a value for the DummyJSON_Id__c field, the trigger generates a random number between 0 and 100 for it.
- * 2. Upon insertion, if the generated or provided DummyJSON_Id__c value is less than or equal to 100, the trigger initiates the getDummyJSONUserFromId API call.
- * 3. If a Contact record is updated and the DummyJSON_Id__c value is greater than 100, the trigger initiates the postCreateDummyJSONUser API call.
+ * 1. When a new Contact is inserted and doesn't have a value for the DummyJSON_Id__c field, the trigger 
+ * generates a random number between 0 and 100 for it.
+ * 2. Upon insertion, if the generated or provided DummyJSON_Id__c value is less than or equal to 100, the trigger 
+ * initiates the getDummyJSONUserFromId API call.
+ * 3. If a Contact record is updated and the DummyJSON_Id__c value is greater than 100, the trigger initiates the 
+ * postCreateDummyJSONUser API call.
  * 
  * Best Practices for Callouts in Triggers:
  * 
@@ -18,6 +21,35 @@
  */
 trigger ContactTrigger on Contact(before insert) {
 	// When a contact is inserted
+
+	if(Trigger.isBefore && Trigger.isInsert) {
+	
+		for(Contact con : Trigger.new){
+			if (con.DummyJSON_Id__c == NULL) {
+				con.DummyJSON_Id__c =  String.valueOf(Integer.valueof((Math.random() * 100)));
+			}
+		} 
+	}
+
+	if (Trigger.isAfter && Trigger.isInsert) {
+		for(Contact con : Trigger.new){
+			if (Integer.valueof(con.DummyJSON_Id__c) <= 100) {
+				DummyJSONCallout.getDummyJSONUserFromId(con.DummyJSON_Id__c);
+			}
+		}
+	}
+	
+	if (Trigger.isAfter && Trigger.isUpdate) {
+		for (Contact con : Trigger.new) {
+			if (Integer.valueof(con.DummyJSON_Id__c)> 100) {
+				DummyJSONCallout.postCreateDummyJSONUser(con.Id);
+			}
+		}
+	}
+	//3. If a Contact record is updated and the DummyJSON_Id__c value is greater than 100, the trigger initiates the 
+	//* postCreateDummyJSONUser API call.
+
+
 	// if DummyJSON_Id__c is null, generate a random number between 0 and 100 and set this as the contact's DummyJSON_Id__c value
 
 	//When a contact is inserted
